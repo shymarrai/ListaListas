@@ -1,21 +1,51 @@
+import React, { useState } from 'react';
+
+import Principal from './src/screens/Principal';
+
 import { StatusBar } from 'expo-status-bar';
-import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { ThemeProvider } from 'styled-components';
+import AppLoading from 'expo-app-loading';
+
+import theme_light from './src/global/styles/theme'
+import theme_dark from './src/global/styles/theme_dark'
+
+import {
+  useFonts,
+  Quicksand_300Light,
+  Quicksand_400Regular,
+  Quicksand_500Medium,
+  Quicksand_600SemiBold,
+} from '@expo-google-fonts/quicksand'
+
+import { 
+  Lobster_400Regular 
+} from '@expo-google-fonts/lobster'
+
 
 export default function App() {
-  return (
-    <View style={styles.container}>
-      <Text>Open up App.js to start working on your app!</Text>
-      <StatusBar style="auto" />
-    </View>
-  );
+  const [ changedTheme, setChangedTheme ] = useState(false)
+
+  function toggleTheme(){
+    setChangedTheme(!changedTheme)
+  }
+  let [fontsLoaded] = useFonts({
+    Quicksand_300Light,
+    Quicksand_500Medium,
+    Quicksand_600SemiBold,
+    Quicksand_400Regular,
+    Lobster_400Regular
+  });
+
+  if (!fontsLoaded) {
+    return <AppLoading />;
+  } else {
+    return (
+      <ThemeProvider theme={changedTheme ? theme_dark : theme_light}>
+        <StatusBar barStyle="light-content" />
+
+        <Principal toggleTheme={toggleTheme} />
+      </ThemeProvider>
+    );
+  }
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-});
