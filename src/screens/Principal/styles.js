@@ -57,8 +57,10 @@ export const ContainerSwitcher = styled.View`
     width: 100%;
     flex-direction: row;
     align-items: center;
-    margin-horizontal: 20px;
-    margin-bottom: 6px
+    padding-horizontal: 20px;
+    padding-vertical: 6px;
+    margin-bottom: 6px;
+    background-color: ${ ({ theme }) => theme.colors.background_reverse };
 `
 
 export const Input = styled.TextInput.attrs({
@@ -142,6 +144,12 @@ export const LegendLight = styled.Text`
 
 export const LegendDark = styled.Text`
     color: ${({theme}) =>  theme.colors.primary};
+    font-size: 14px;
+    font-family: ${({theme}) =>  theme.fonts.semiBold};
+`
+
+export const LegendReverse = styled.Text`
+    color: ${({theme}) =>  theme.colors.secondary};
     font-size: 14px;
     font-family: ${({theme}) =>  theme.fonts.semiBold};
 `

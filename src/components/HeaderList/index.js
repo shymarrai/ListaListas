@@ -15,6 +15,7 @@ import {
 export default function HeaderList({list, toggleViewItems, OpenOptions, showItems, controllers, dark, ...rest }){
     return(
         <Container
+            onPress={toggleViewItems}
             style={dark &&  {backgroundColor: theme.colors.primary}}
             { ...rest }
         >
@@ -31,9 +32,9 @@ export default function HeaderList({list, toggleViewItems, OpenOptions, showItem
                         >
                             {
                                 showItems ?
-                                    <TogglerUp />
-                                :
                                     <TogglerDown />
+                                :
+                                    <TogglerUp />
                             }
                         </TouchableOpacity>
                         

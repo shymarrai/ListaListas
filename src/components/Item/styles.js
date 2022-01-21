@@ -28,7 +28,8 @@ export const Title = styled.Text`
 `
 
 export const Line = styled.View`
-    height: 1px;
+    height: 2px;
+    border-radius: 2px;
     width: 68%;
     background-color: ${({theme}) =>  theme.colors.secondary}; /* light primary */
     position: absolute;
@@ -42,14 +43,14 @@ export const Wrapper = styled.View`
     justify-content: center;
 `
 
-export const Check = styled(Feather).attrs({
+export const Uncheck = styled(Feather).attrs({
     color: theme.colors.shape,
     name: "check-square",
     size:18
 
 })``
 
-export const Uncheck = styled(Feather).attrs({
+export const Check = styled(Feather).attrs({
     color: theme.colors.shape,
     name: "x-square",
     size:18
@@ -57,7 +58,7 @@ export const Uncheck = styled(Feather).attrs({
 })``
 
 export const Delete = styled(Feather).attrs({
-    color: theme.colors.primary,
+    color: theme.colors.shape,
     name: "trash",
     size:18
 

@@ -27,7 +27,7 @@ export default function Item({item, list ,toggleCheck, removeItem}){
                     item.hasCheck ?
                         <Button
                             style={{
-                                backgroundColor: theme.colors.success
+                                backgroundColor: theme.colors.light
                             }}
                             onPress={() => toggleCheck(item.key, list)}
                         >
@@ -37,7 +37,7 @@ export default function Item({item, list ,toggleCheck, removeItem}){
 
                         <Button
                             style={{
-                                backgroundColor: theme.colors.attention
+                                backgroundColor: theme.colors.success
                             }}
                             onPress={() => toggleCheck(item.key, list)}
                         >
@@ -48,7 +48,7 @@ export default function Item({item, list ,toggleCheck, removeItem}){
 
                 <Button
                     style={{
-                        backgroundColor: theme.colors.shape
+                        backgroundColor: theme.colors.attention
                     }}
                     onPress={() => removeItem(item.key, list)}
                 >

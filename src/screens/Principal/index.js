@@ -14,6 +14,7 @@ import {
     Icon,
     SwipeModal,
     Legend,
+    LegendReverse,
     LegendDark,
     WrapperFooter,
     ButtonSwitch,
@@ -368,9 +369,9 @@ export default function Principal({ toggleTheme }){
                     >
                         <SwipeModal />
                     </ButtonSwitch>
-                    <Legend>
-                        Adicionando { listSelected ? "à" : 'uma'} { listSelected ? destiny.name : "nova lista" }
-                    </Legend>
+                    <LegendReverse>
+                        Adicionando { listSelected ? "à lista:" : 'uma'} { listSelected ? destiny.name : "nova lista" }
+                    </LegendReverse>
                 </ContainerSwitcher>
 
                 <WrapperFooter>
