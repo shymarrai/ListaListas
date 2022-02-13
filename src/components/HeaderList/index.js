@@ -12,10 +12,9 @@ import {
     More
 } from './styles.js'
 
-export default function HeaderList({list, toggleViewItems, OpenOptions, showItems, controllers, dark, ...rest }){
+export default function HeaderList({list, toggleViewItems, OpenOptions, showItems, controllers, toggleViewListKey, dark, ...rest }){
     return(
         <Container
-            onPress={toggleViewItems}
             style={dark &&  {backgroundColor: theme.colors.primary}}
             { ...rest }
         >
@@ -27,14 +26,12 @@ export default function HeaderList({list, toggleViewItems, OpenOptions, showItem
             {
                 controllers &&
                     <Wrapper>
-                        <TouchableOpacity
-                            onPress={toggleViewItems}
-                        >
+                        <TouchableOpacity>
                             {
-                                showItems ?
-                                    <TogglerDown />
+                                showItems && toggleViewListKey.indexOf(list.key) !== -1 ?
+                                    <TogglerDown onPress={() => toggleViewItems(list.key)} />
                                 :
-                                    <TogglerUp />
+                                    <TogglerUp onPress={() => toggleViewItems(list.key)} />
                             }
                         </TouchableOpacity>
                         

@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from "react";
-import { Switch, Modal, View, Alert, TouchableOpacity } from "react-native";
+import { Switch, Modal, View, Alert, TouchableOpacity, ScrollView, Keyboard, TouchableWithoutFeedback } from "react-native";
+import { Ionicons } from '@expo/vector-icons';
+import theme from '../../global/styles/theme'
 
 import {
     Background,
@@ -12,9 +14,10 @@ import {
     ButtonRect,
     LegendLight,
     Icon,
+    Plus,
     SwipeModal,
     Legend,
-    LegendReverse,
+    LegendDestaque,
     LegendDark,
     WrapperFooter,
     ButtonSwitch,
@@ -25,9 +28,16 @@ import {
 
 import HeaderList from '../../components/HeaderList'
 import Item from '../../components/Item'
-import theme from "../../global/styles/theme.js";
 import uuid from 'react-native-uuid';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+
+import {
+    AdMobBanner,
+    AdMobInterstitial,
+    PublisherBanner,
+    AdMobRewarded,
+    setTestDeviceIDAsync,
+  } from 'expo-ads-admob';
 
 
 const collectionKey = '@listlists:allLists';
@@ -44,6 +54,7 @@ export default function Principal({ toggleTheme }){
 
     const [ listSelected, setListSelected ] = useState(false)
     const [ destiny, setDestiny ] = useState("")
+    const [ toggleViewListKey, setToggleViewListKey ] = useState('')
 
     const [ listEdit , setListEdit ] = useState()
     const [ qunatityItems, setQuantityItem ] = useState(0)
@@ -68,8 +79,16 @@ export default function Principal({ toggleTheme }){
         setData(lists)
     }
     
-    function toggleViewItems(){
-        setShowItems(!showItems)
+    function toggleViewItems(key){
+
+        if(key == toggleViewListKey){
+            setToggleViewListKey('')
+            setShowItems(false)
+        }else{
+            setToggleViewListKey(key)
+            setShowItems(true)
+        }
+
     }
 
     async function handleOpenOptions(list){
@@ -191,8 +210,8 @@ export default function Principal({ toggleTheme }){
             const currentData = allLists ? JSON.parse(allLists) : []
       
             const dataFormated = [
+                ...currentData,
                 newList,
-              ...currentData
             ]
       
             await AsyncStorage.setItem(collectionKey, JSON.stringify(dataFormated))
@@ -204,13 +223,18 @@ export default function Principal({ toggleTheme }){
             console.log(error)
             Alert.alert('Não foi possível salvar')
           }
-        
+
+          Keyboard.dismiss
     }
 
     async function handleAddNewItemInList(destiny){
         if(!listSelected){
             handleAddNewList()
             return
+        }
+
+        if(text === ''){
+            return 
         }
 
         try{
@@ -233,11 +257,11 @@ export default function Principal({ toggleTheme }){
                 ]
             }
 
-            setData([...currentList, newItem])
+            setData([newItem, ...currentList])
 
             const dataFormated = [
                 newItem,
-              ...currentList
+                ...currentList
             ]
             
             await AsyncStorage.setItem(collectionKey, JSON.stringify(dataFormated))
@@ -246,6 +270,8 @@ export default function Principal({ toggleTheme }){
         }catch(err){
             console.log(err)
         }
+
+        Keyboard.dismiss
     }
 
     async function toggleCheck(key, list){
@@ -299,7 +325,7 @@ export default function Principal({ toggleTheme }){
                 ...currentItems
             ]
 
-            setData([...currentList, {...alterList[0]}])
+            setData([{...alterList[0]}, ...currentList])
 
             const dataFormated = [
                 alterList[0],
@@ -315,9 +341,22 @@ export default function Principal({ toggleTheme }){
     }
 
     return(
+        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
         <Background>
+            <AdMobBanner
+                bannerSize="fullBanner"
+                adUnitID="ca-app-pub-3940256099942544/6300978111" //"ca-app-pub-1630449266026590/6119053772"
+                servePersonalizedAds // true or false
+                setTestDeviceIDAsync
+                onDidFailToReceiveAdWithError={(err) => console.log(err)}
+            />
             <Header>
-                <Title>
+                <Title
+                    onPress={() => {
+                        setDestiny('')
+                        setListSelected(false)
+                    }}
+                >
                     Lista Listas
                 </Title>
 
@@ -334,7 +373,12 @@ export default function Principal({ toggleTheme }){
             </Header>
             <Content>
                 <Lister
+                    style={{flex: 1}}
+                    contentContainerStyle={showItems === false ? { flexGrow: 1} : {height: '100%'}}
                     data={data}
+                    nestedScrollEnabled
+                    scrollEnabled={showItems === false}
+                    disableScrollViewPanResponder={false}
                     keyExtractor={(item) => item.key}
                     renderItem={({item}) => (
                         <>
@@ -345,15 +389,28 @@ export default function Principal({ toggleTheme }){
                                 controllers={true} 
                                 dark={false} 
                                 showItems={showItems}
-                            />
-                            {
-                                item.list.map(itemList => (
-                                    
-                                    showItems &&
-                                        <Item item={itemList} list={item} key={itemList.key} toggleCheck={toggleCheck} removeItem={removeItem} />
+                                toggleViewListKey={toggleViewListKey}
+                                // onPress={() => handleOpen()}
+                                onPress={() => {
+                                    setDestiny(item)
+                                    setListSelected(true)
+                                }}
 
-                                ))
-                            }
+                            />
+                                    
+                            <ScrollView
+                                disableScrollViewPanResponder={false}
+                                contentContainerStyle={showItems && item.key === toggleViewListKey && { paddingBottom: 60}}
+                            > 
+                                {
+                                    item.list.map(itemList => (
+                                        
+                                        showItems && item.key === toggleViewListKey &&
+                                            <Item item={itemList} list={item} key={itemList.key} toggleCheck={toggleCheck} removeItem={removeItem} />
+
+                                    ))
+                                }
+                            </ScrollView>
                         </>
                     )}
                 />
@@ -363,31 +420,83 @@ export default function Principal({ toggleTheme }){
             </Content>
             
             <Footer>
-                <ContainerSwitcher>
-                    <ButtonSwitch
-                        onPress={() => handleOpen()}
-                    >
-                        <SwipeModal />
-                    </ButtonSwitch>
-                    <LegendReverse>
-                        Adicionando { listSelected ? "à lista:" : 'uma'} { listSelected ? destiny.name : "nova lista" }
-                    </LegendReverse>
-                </ContainerSwitcher>
+           
 
-                <WrapperFooter>
-                    <Input
-                        placeholder='Escreva seu item aqui...'
-                        value={text}
-                        onChangeText={setText}
-                    />
-                    <Button 
-                        onPress={() =>  {
-                            destiny ? handleAddNewItemInList(destiny) : handleAddNewList()
-                        }}
-                    >
-                        <Icon />
-                    </Button>
-                </WrapperFooter>
+                    <ContainerSwitcher>
+                        {/* <ButtonSwitch
+                            onPress={() => handleOpen()}
+                        >
+                            <SwipeModal />
+                        </ButtonSwitch> */}
+                         {
+                             listSelected &&
+                             <>
+                                <Ionicons 
+                                    name="return-up-back" 
+                                    size={26} 
+                                    color={theme.colors.secondary} 
+                                    style={{paddingHorizontal: 20}}
+                                    onPress={() => {
+                                        setDestiny('')
+                                        setListSelected(false)
+                                    }}
+                                />
+                                <LegendDestaque>
+                                    Adicionando { listSelected && "à lista:" } { listSelected && destiny.name }
+                                </LegendDestaque>
+                             </>
+                        }
+                    </ContainerSwitcher> 
+                
+               
+
+                {
+                    listSelected || destiny ?
+                    <>
+                    {
+                        !listSelected && destiny &&
+                            <Ionicons 
+                                name="return-up-back" 
+                                size={26} 
+                                color={theme.colors.secondary} 
+                                style={{paddingHorizontal: 20}}
+                                onPress={() => {
+                                    setDestiny('')
+                                    setListSelected(false)
+                                }}
+                            />
+                    }
+                        <WrapperFooter>
+                            <Input
+                                placeholder={!listSelected ? 'Escreva o nome da sua lista...': 'Escreva seu item aqui...'}
+                                value={text}
+                                onChangeText={setText}
+                            />
+                            <Button 
+                                onPress={() =>  {
+                                    destiny ? handleAddNewItemInList(destiny) : handleAddNewList()
+                                }}
+                            >
+                                <Icon />
+                            </Button>
+                        </WrapperFooter>
+                    </>
+
+                    :
+
+                        <Button 
+                            style={{borderRadius: 100, alignSelf: 'center'}}
+                            onPress={() => {
+                                setDestiny("uma nova lista")
+                                setListSelected(false)
+                            }}
+                        >
+                            <Plus />
+                        </Button>
+
+
+                }
+
             </Footer>
 
 
@@ -428,14 +537,14 @@ export default function Principal({ toggleTheme }){
                         </Button>
                         <View style={{
                             paddingHorizontal: 20,
-                            top: -26
+                            top: -36, 
                         }}>
+
                             <LegendDark
                                 style={{marginBottom: 12}}
                             >
                                 Editando lista: { newName }
                             </LegendDark>
-
                             <Input
                                 placeholder='Nome da lista'
                                 value={newName}
@@ -499,11 +608,13 @@ export default function Principal({ toggleTheme }){
                             <View
                                 style={{
                                     flexDirection: 'row',
-                                    width: '75%',
+                                    width: '85%',
                                     alignItems: 'center',
                                     justifyContent: 'space-between',
                                     alignSelf: 'center',
-                                    top: 40
+                                    top: 20,
+                                    marginBottom: 20
+
                                     
                                 }}
                             >
@@ -574,6 +685,7 @@ export default function Principal({ toggleTheme }){
                         <>
                             <Lister
                                 data={data}
+                                contentContainerStyle={{height: '100%'}}
                                 style={{width: "80%", alignSelf: 'center', top: -26}}
                                 ListHeaderComponent={
                                     <>
@@ -613,5 +725,6 @@ export default function Principal({ toggleTheme }){
                 </TouchableOpacity>
             </Modal>
         </Background>
+        </TouchableWithoutFeedback>
     )
 }

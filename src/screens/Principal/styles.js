@@ -1,17 +1,17 @@
 import styled from 'styled-components/native'
-import { Feather, AntDesign } from '@expo/vector-icons'
+import { Ionicons, AntDesign, Feather } from '@expo/vector-icons'
 import theme from '../../global/styles/theme'
-
+import { getStatusBarHeight } from 'react-native-iphone-x-helper'
 
 export const Background = styled.View`
     flex: 1;
     background-color: ${ ({ theme }) => theme.colors.background };
+    padding-top: ${getStatusBarHeight()}px;
 `
 
 export const Header = styled.View`
     width: 100%;
-    margin: 40px 0px 0px 0px;
-    padding: 20px;
+    padding: 10px 20px;
     background-color: ${ ({ theme }) => theme.colors.background };
     align-items: center;
     justify-content: space-between;
@@ -30,11 +30,7 @@ export const Content = styled.View`
 `
 
 export const Lister = styled.FlatList.attrs({
-    contentContainerStyle: {
-        flex: 1,
-    }
 })`
-    flex: 1;
     margin-bottom: 40px;
     width: 100%;
 `
@@ -58,9 +54,6 @@ export const ContainerSwitcher = styled.View`
     flex-direction: row;
     align-items: center;
     padding-horizontal: 20px;
-    padding-vertical: 6px;
-    margin-bottom: 6px;
-    background-color: ${ ({ theme }) => theme.colors.background_reverse };
 `
 
 export const Input = styled.TextInput.attrs({
@@ -80,9 +73,9 @@ export const Input = styled.TextInput.attrs({
     font-family: ${({ theme }) => theme.fonts.regular };
 `
 
-export const Icon = styled(Feather).attrs({
+export const Icon = styled(Ionicons).attrs({
     color: theme.colors.primary,
-    name: "plus",
+    name: "send",
     size:24
 
 })``
@@ -136,6 +129,12 @@ export const Legend = styled.Text`
     font-family: ${({theme}) =>  theme.fonts.semiBold};
 `
 
+export const LegendDestaque = styled.Text`
+    color: ${({theme}) =>  theme.colors.background_reverse};
+    font-size: 14px;
+    font-family: ${({theme}) =>  theme.fonts.semiBold};
+`
+
 export const LegendLight = styled.Text`
     color: ${({theme}) =>  theme.colors.shape};
     font-size: 14px;
@@ -162,4 +161,13 @@ export const SwipeModal = styled(AntDesign ).attrs({
 })`
     align-self: center;
 `
+
+
+export const Plus = styled(Feather).attrs({
+    color: theme.colors.primary,
+    name: "plus",
+    size:24
+
+})``
+
 

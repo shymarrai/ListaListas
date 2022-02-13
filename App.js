@@ -21,10 +21,9 @@ import {
   Lobster_400Regular 
 } from '@expo-google-fonts/lobster'
 
-
 export default function App() {
   const [ changedTheme, setChangedTheme ] = useState(false)
-
+  
   function toggleTheme(){
     setChangedTheme(!changedTheme)
   }
@@ -41,8 +40,7 @@ export default function App() {
   } else {
     return (
       <ThemeProvider theme={changedTheme ? theme_dark : theme_light}>
-        <StatusBar barStyle="light-content" />
-
+        <StatusBar barStyle="default" />
         <Principal toggleTheme={toggleTheme} />
       </ThemeProvider>
     );

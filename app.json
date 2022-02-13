@@ -1,13 +1,16 @@
 {
   "expo": {
-    "name": "ListaListas",
-    "slug": "ListaListas",
+    "name": "Lista Listas",
+    "slug": "lista-listas",
     "version": "1.0.0",
     "assetBundlePatterns": [
       "**/*"
     ],
     "android": {
-      "package": "com.shymarrai.ListaListas"
+      "package": "com.shymarrai.ListaListas",
+      "config": {
+        "googleMobileAdsAppId": "ca-app-pub-1630449266026590~9453430608"
+      }
     }
   },
   "name": "ListaListas"
