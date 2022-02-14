@@ -8,11 +8,12 @@ import {
     TogglerUp,
     TogglerDown,
     Share,
+    Plus,
     Button,
     More
 } from './styles.js'
 
-export default function HeaderList({list, toggleViewItems, OpenOptions, showItems, controllers, toggleViewListKey, dark, ...rest }){
+export default function HeaderList({list, toggleViewItems, OpenOptions, showItems, controllers, toggleViewListKey, setDestiny, setListSelected, dark, ...rest }){
     return(
         <Container
             style={dark &&  {backgroundColor: theme.colors.primary}}
@@ -39,6 +40,15 @@ export default function HeaderList({list, toggleViewItems, OpenOptions, showItem
                             onPress={() => OpenOptions(list)}
                         >
                             <More />
+                        </Button>
+                        <Button
+                            onPress={() => {
+                                setDestiny(list)
+                                setListSelected(true)
+                            }}
+                            style={{backgroundColor: theme.colors.primary}}
+                        >
+                            <Plus />
                         </Button>
                         {/* 
 

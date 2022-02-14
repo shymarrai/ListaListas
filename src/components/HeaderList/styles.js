@@ -73,3 +73,10 @@ export const Button = styled.TouchableOpacity.attrs({
     background-color: ${({theme}) =>  theme.colors.shape};
 
 `
+
+export const Plus = styled(Feather).attrs({
+    color: theme.colors.shape,
+    name: "plus",
+    size:24
+
+})``

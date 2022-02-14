@@ -1,6 +1,11 @@
 {
   "expo": {
     "name": "Lista Listas",
+    "icon": "./assets/icon.png",
+    "splash": {
+      "image": "./assets/icon.png",
+      "backgroundColor": "#011627"
+    },
     "slug": "lista-listas",
     "version": "1.0.0",
     "assetBundlePatterns": [
@@ -8,10 +13,12 @@
     ],
     "android": {
       "package": "com.shymarrai.ListaListas",
+      "versionCode": 1,
       "config": {
         "googleMobileAdsAppId": "ca-app-pub-1630449266026590~9453430608"
       }
     }
   },
-  "name": "ListaListas"
+  "name": "ListaListas",
+  "displayName": "Lista Listas"
 }

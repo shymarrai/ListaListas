@@ -224,7 +224,7 @@ export default function Principal({ toggleTheme }){
             Alert.alert('Não foi possível salvar')
           }
 
-          Keyboard.dismiss
+          Keyboard.dismiss()
     }
 
     async function handleAddNewItemInList(destiny){
@@ -271,7 +271,7 @@ export default function Principal({ toggleTheme }){
             console.log(err)
         }
 
-        Keyboard.dismiss
+        Keyboard.dismiss()
     }
 
     async function toggleCheck(key, list){
@@ -390,6 +390,8 @@ export default function Principal({ toggleTheme }){
                                 dark={false} 
                                 showItems={showItems}
                                 toggleViewListKey={toggleViewListKey}
+                                setDestiny={setDestiny}
+                                setListSelected={setListSelected}
                                 // onPress={() => handleOpen()}
                                 onPress={() => {
                                     setDestiny(item)
