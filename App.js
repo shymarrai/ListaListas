@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
-
+import React, { useState, useEffect, useRef } from 'react';
+import { Text, View, Button, Platform } from 'react-native';
 import Principal from './src/screens/Principal';
 
 import { StatusBar } from 'expo-status-bar';
 import { ThemeProvider } from 'styled-components';
 import AppLoading from 'expo-app-loading';
+
 
 import theme_light from './src/global/styles/theme'
 import theme_dark from './src/global/styles/theme_dark'
@@ -21,8 +22,10 @@ import {
   Lobster_400Regular 
 } from '@expo-google-fonts/lobster'
 
+
 export default function App() {
   const [ changedTheme, setChangedTheme ] = useState(false)
+
   
   function toggleTheme(){
     setChangedTheme(!changedTheme)

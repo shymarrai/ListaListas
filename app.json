@@ -2,6 +2,15 @@
   "expo": {
     "name": "Lista Listas",
     "icon": "./assets/icon.png",
+    "plugins": [
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/icon.png",
+          "color": "#FFBD2E"
+        }
+      ]
+    ],
     "splash": {
       "image": "./assets/icon.png",
       "backgroundColor": "#011627"

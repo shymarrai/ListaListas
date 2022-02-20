@@ -1,7 +1,11 @@
-import React, { useEffect, useState } from "react";
-import { Switch, Modal, View, Alert, TouchableOpacity, ScrollView, Keyboard, TouchableWithoutFeedback } from "react-native";
-import { Ionicons } from '@expo/vector-icons';
+import React, { useEffect, useState, useRef } from "react";
+import { Switch, Modal, View, Alert, TouchableOpacity, ScrollView, Keyboard, TouchableWithoutFeedback, Platform, Text } from "react-native";
 import theme from '../../global/styles/theme'
+import * as Notifications from 'expo-notifications';
+import * as Device from 'expo-device';
+import { format, isBefore } from 'date-fns';
+import { Feather, Ionicons } from '@expo/vector-icons';
+import { ptBR } from 'date-fns/locale';
 
 import {
     Background,
@@ -15,21 +19,21 @@ import {
     LegendLight,
     Icon,
     Plus,
-    SwipeModal,
-    Legend,
     LegendDestaque,
     LegendDark,
     WrapperFooter,
-    ButtonSwitch,
     ContainerSwitcher,
     Close,
-    Lister
+    Lister,
+    styles
 } from './styles.js'
 
 import HeaderList from '../../components/HeaderList'
 import Item from '../../components/Item'
 import uuid from 'react-native-uuid';
+
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import DateTimePicker  from '@react-native-community/datetimepicker'
 
 import {
     AdMobBanner,
@@ -41,6 +45,15 @@ import {
 
 
 const collectionKey = '@listlists:allLists';
+
+
+Notifications.setNotificationHandler({
+    handleNotification: async () => ({
+      shouldShowAlert: true,
+      shouldPlaySound: true,
+      shouldSetBadge: true,
+    }),
+  });
 
 export default function Principal({ toggleTheme }){
 
@@ -65,7 +78,48 @@ export default function Principal({ toggleTheme }){
     const [ text, setText ] = useState('')
     const [ data, setData ] = useState([])
 
+    const [ bodyNotification, setBodyNotification ] = useState('')
     
+    const [selectedDateTime, setSelectedDateTime] = useState(new Date())
+    const [mode, setMode] = useState('date');
+    const [showDatePicker, setShowDatePicker] = useState(Platform.OS === 'ios')
+
+    const [expoPushToken, setExpoPushToken] = useState('');
+    const [notification, setNotification] = useState(false);
+
+    const [notificationAdded, setNotificationAdded] = useState(false);
+
+    const notificationListener = useRef();
+    const responseListener = useRef();
+
+    function handleChangeTime(event, dateTime){
+        if(Platform.OS === 'android'){
+          setShowDatePicker(oldState => !oldState)
+        }
+        if(dateTime && isBefore(dateTime, new Date())){
+          setSelectedDateTime(new Date())
+          return Alert.alert("Escolha uma hora no futuro! 🙄")
+        }
+      
+        if(dateTime){
+          setSelectedDateTime(dateTime)
+        }
+      
+      }
+      
+      const showMode = (currentMode) => {
+        setShowDatePicker(oldState => !oldState)
+        setMode(currentMode);
+      };
+    
+      const showDatepicker = () => {
+        showMode('date');
+      };
+    
+      const showTimepicker = () => {
+        showMode('time');
+      };
+
     
     useEffect(() => {
         loadData()
@@ -98,7 +152,9 @@ export default function Principal({ toggleTheme }){
             setQuantityItem(0)
             setQuantityItemCheck(0)
             setQuantityItemNoCheck(0)
-
+            setNotificationAdded(false)
+            setBodyNotification('')
+            setSelectedDateTime(new Date())
         }else{
             setOpenOptions(true)
             setListEdit(list)
@@ -147,7 +203,9 @@ export default function Principal({ toggleTheme }){
             setQuantityItem(0)
             setQuantityItemCheck(0)
             setQuantityItemNoCheck(0)
-
+            setNotificationAdded(false)
+            setBodyNotification('')
+            setSelectedDateTime(new Date())
         }catch(err){
             console.log(err)
         }
@@ -182,6 +240,9 @@ export default function Principal({ toggleTheme }){
             setQuantityItem(0)
             setQuantityItemCheck(0)
             setQuantityItemNoCheck(0)
+            setNotificationAdded(false)
+            setBodyNotification('')
+            setSelectedDateTime(new Date())
         }catch(err){
             console.log(err)
         }
@@ -192,20 +253,111 @@ export default function Principal({ toggleTheme }){
         await AsyncStorage.removeItem(collectionKey)
         loadData()
     }
+  
+
+
+    useEffect(() => {
+      registerForPushNotificationsAsync().then(token => setExpoPushToken(token));
+  
+      notificationListener.current = Notifications.addNotificationReceivedListener(notification => {
+        setNotification(notification);
+      });
+  
+      responseListener.current = Notifications.addNotificationResponseReceivedListener(response => {
+        console.log(response);
+      });
+  
+      return () => {
+        Notifications.removeNotificationSubscription(notificationListener.current);
+        Notifications.removeNotificationSubscription(responseListener.current);
+      };
+    }, []);
     
+
+
+
+    async function registerForPushNotificationsAsync() {
+        let token;
+        if (Device.isDevice) {
+          const { status: existingStatus } = await Notifications.getPermissionsAsync();
+          let finalStatus = existingStatus;
+          if (existingStatus !== 'granted') {
+            const { status } = await Notifications.requestPermissionsAsync();
+            finalStatus = status;
+          }
+          if (finalStatus !== 'granted') {
+            alert('Failed to get push token for push notification!');
+            return;
+          }
+          token = (await Notifications.getExpoPushTokenAsync()).data;
+        } else {
+          alert('Must use physical device for Push Notifications');
+        }
+      
+        if (Platform.OS === 'android') {
+          Notifications.setNotificationChannelAsync('default', {
+            name: 'default',
+            importance: Notifications.AndroidImportance.HIGH,
+            vibrationPattern: [0, 250, 250, 250],
+            lightColor: '#FFBD2E',
+          });
+        }
+      
+        return token;
+      }
+
+    
+    async function handleAddNotificationInList(dateNotification){
+        
+        const now = new Date()
+
+        const formateDate = String(format(dateNotification, 'MM/dd/yyyy HH:mm:ss (z)', { locale: ptBR}))
+        const date = new Date(formateDate)
+        
+        const seconds = Math.abs( 
+            Math.ceil((now.getTime() - date.getTime()) / 1000 )
+          );
+      
+
+          try{
+              await Notifications.scheduleNotificationAsync({
+                  content: {
+                    title: `💡 Alerta da sua lista: ${newName}`,
+                    body: bodyNotification,
+                    sound:  'default',
+                    priority: Notifications.AndroidNotificationPriority.HIGH,
+                    data: { data: 'goes here' },
+                    color: '#FFBD2E',
+      
+                  },
+                  trigger:{
+                    seconds: seconds,
+                  }
+                })
+
+                setNotificationAdded(true)
+                setBodyNotification('')
+                setSelectedDateTime(new Date())
+          }catch(err){
+              console.log(err)
+          }
+
+    }
+
+
     async function handleAddNewList(){
         if(!text)
         return
-        
 
-        const newList = {
-            key: String(uuid.v4()),
-            name: text,
-            list: []            
-        }
+        try{      
+              const newList = {
+                key: String(uuid.v4()),
+                name: text,
+                list: [],
+            }
+    
+            setData([...data, newList])
 
-        setData([...data, newList])
-        try{
             const allLists = await AsyncStorage.getItem(collectionKey)
             const currentData = allLists ? JSON.parse(allLists) : []
       
@@ -345,7 +497,7 @@ export default function Principal({ toggleTheme }){
         <Background>
             <AdMobBanner
                 bannerSize="fullBanner"
-                adUnitID="ca-app-pub-3940256099942544/6300978111" //"ca-app-pub-1630449266026590/6119053772"
+                adUnitID="ca-app-pub-1630449266026590/6119053772" // teste ca-app-pub-3940256099942544/6300978111
                 servePersonalizedAds // true or false
                 setTestDeviceIDAsync
                 onDidFailToReceiveAdWithError={(err) => console.log(err)}
@@ -512,220 +664,244 @@ export default function Principal({ toggleTheme }){
                     handleOpenOptions()
                 }}
             >
-                <TouchableOpacity
-                    activeOpacity={0.9}
-                    onPress={() => handleOpenOptions()}
-                    style={{flex: 1}}
-                >
-                    <View 
-                        style={{
-                            width: '100%',
-                            height: '50%',
-                            backgroundColor: theme.colors.light,
-                            top: '50%',
-                            borderTopLeftRadius: 50,
-                            borderTopRightRadius: 50,
-                            paddingTop: 20
-                        }}
-                    >   
-                        <Button
+                <>
+
+                        <View 
                             style={{
-                                alignSelf: "flex-end",
-                                top: -10
+                                width: '100%',
+                                height: 400,
+                                backgroundColor: theme.colors.light,
+                                top: '50%',
+                                borderTopLeftRadius: 50,
+                                borderTopRightRadius: 50,
+                                paddingTop: 20
                             }}
-                            onPress={() => handleOpenOptions()}
-                        >
-                            <Close />
-                        </Button>
-                        <View style={{
-                            paddingHorizontal: 20,
-                            top: -36, 
-                        }}>
-
-                            <LegendDark
-                                style={{marginBottom: 12}}
+                        >   
+                            <ScrollView
+                                nestedScrollEnabled={true}
+                                style={{flex: 1}}
+                                contentContainerStyle={{flexGrow: 1}}
                             >
-                                Editando lista: { newName }
-                            </LegendDark>
-                            <Input
-                                placeholder='Nome da lista'
-                                value={newName}
-                                onChangeText={setNewname}
-                            />
-
-                            <View
-                            style={{
+                            <Button
+                                style={{
+                                    alignSelf: "flex-end",
+                                    top: -10
+                                }}
+                                onPress={() => handleOpenOptions()}
+                            >
+                                <Close />
+                            </Button>
+                            <View style={{
                                 paddingHorizontal: 20,
-                                marginTop: 12
-                            }}
-                            >
-                            <View
+                                top: -36, 
+                            }}>
+
+                                <LegendDark
+                                    style={{marginBottom: 12, marginLeft: '28%'}}
+                                >
+                                    Editando lista: { newName }
+                                </LegendDark>
+                                <LegendDark
                                 style={{
-                                    flexDirection: 'row'
+                                    paddingHorizontal: 10
                                 }}
-                            >
-                                
-
-
-                                <LegendDark>
-                                    Itens:
+                                >
+                                    Nome:
                                 </LegendDark>
-                                <LegendDark>
-                                    { qunatityItems }
-                                </LegendDark>
-                            </View>
+                                <Input
+                                    placeholder='Nome da lista'
+                                    value={newName}
+                                    onChangeText={setNewname}
+                                    style={{left: -12}}
+                                />
 
-                            <View
+                                <View
                                 style={{
-                                    flexDirection: 'row'
+                                    paddingHorizontal: 10,
+                                    marginTop: 12
                                 }}
-                            >
-                                <LegendDark>
-                                    Itens com Check:
-                                </LegendDark>
-                                <LegendDark>
-                                    { qunatityItemsCheck }
-                                </LegendDark>
-                            </View>
+                                >
+                                <View
+                                    style={{
+                                        flexDirection: 'row'
+                                    }}
+                                >
+                                    <LegendDark>
+                                        Itens:
+                                    </LegendDark>
+                                    <LegendDark>
+                                        { qunatityItems }
+                                    </LegendDark>
+                                </View>
 
-                            <View
-                                style={{
-                                    flexDirection: 'row'
-                                }}
-                            >
-                                <LegendDark>
-                                    Itens sem Check:
-                                </LegendDark>
-                                <LegendDark>
-                                    { qunatityItemsNoCheck }
-                                </LegendDark>
-                            </View>
+                                <View
+                                    style={{
+                                        flexDirection: 'row'
+                                    }}
+                                >
+                                    <LegendDark>
+                                        Itens com Check:
+                                    </LegendDark>
+                                    <LegendDark>
+                                        { qunatityItemsCheck }
+                                    </LegendDark>
+                                </View>
 
-                            </View>
-
-
-
-
-                            {/* CONTAINER DE BOTÕES */}
-                            <View
-                                style={{
-                                    flexDirection: 'row',
-                                    width: '85%',
-                                    alignItems: 'center',
-                                    justifyContent: 'space-between',
-                                    alignSelf: 'center',
-                                    top: 20,
-                                    marginBottom: 20
+                                    <View
+                                        style={{
+                                            flexDirection: 'row'
+                                        }}
+                                    >
+                                        <LegendDark>
+                                            Itens sem Check:
+                                        </LegendDark>
+                                        <LegendDark>
+                                            { qunatityItemsNoCheck }
+                                        </LegendDark>
+                                    </View>
 
                                     
-                                }}
-                            >
-                                <ButtonRect
+
+                                </View>
+
+                                <View
                                     style={{
-                                        backgroundColor: theme.colors.attention
+                                        marginTop: 24
                                     }}
-                                    onPress={() => deleteList(listEdit)}
                                 >
-                                    <LegendLight>
-                                        Excluir
-                                    </LegendLight>
-                                </ButtonRect>
+                                    <LegendDark style={{marginLeft: '15%'}}>
+                                        Adicionar Notificação para a lista
+                                    </LegendDark>
 
-                                <ButtonRect
-                                    style={{
-                                        backgroundColor: theme.colors.success
-                                    }}
-                                    onPress={() => saveList(listEdit)}
-                                >
-                                    <LegendLight>
-                                        Salvar
-                                    </LegendLight>
-                                </ButtonRect>
-                            </View>
-                          
-                        </View>
-                    </View>
-                </TouchableOpacity>
-            </Modal>
+                                    <LegendDark style={{marginHorizontal: 10, marginTop: 20}}>
+                                        Mensagem:
+                                    </LegendDark>
 
-
-            {/* MODAL DAS LISTAS */}
-
-            <Modal
-                animationType="slide"
-                transparent={true}
-                visible={modalOpen}
-                onRequestClose={() => {
-                    handleOpen()
-                }}
-            >
-                <TouchableOpacity
-                    activeOpacity={0.9}
-                    onPress={() => handleOpen()}
-                    style={{flex: 1}}
-                >
-                    <View 
-                        style={{
-                            width: '100%',
-                            height: '50%',
-                            backgroundColor: theme.colors.light,
-                            top: '50%',
-                            borderTopLeftRadius: 50,
-                            borderTopRightRadius: 50,
-                            paddingTop: 20
-                        }}
-                    >   
-                        <Button
-                            style={{
-                                alignSelf: "flex-end",
-                                top: -10
-                            }}
-                            onPress={() => handleOpen()}
-                        >
-                            <Close />
-                        </Button>
-                        <>
-                            <Lister
-                                data={data}
-                                contentContainerStyle={{height: '100%'}}
-                                style={{width: "80%", alignSelf: 'center', top: -26}}
-                                ListHeaderComponent={
-                                    <>
-                                        <LegendDark
-                                            style={{marginBottom: 12}}
-                                        >
-                                            Escolha onde adicionar
-                                        </LegendDark>
-                                        <HeaderList 
-                                            controllers={false}
-                                            dark={false}
-                                            style={{backgroundColor: theme.colors.shape}}
-                                            onPress={() => {
-                                                handleOpen()
-                                                setDestiny("uma nova lista")
-                                                setListSelected(false)
-                                            }}
-                                        />
-                                    </>
-                                }
-                                keyExtractor={(item) => item.key}
-                                renderItem={({item}) => (
-                                    <HeaderList 
-                                        list={item} 
-                                        controllers={false}
-                                        dark={true}
-                                        onPress={() => {
-                                            handleOpen()
-                                            setDestiny(item)
-                                            setListSelected(true)
+                                    <View
+                                        style={{
+                                            flexDirection: 'row'
                                         }}
-                                    />
-                                )}
-                            />
-                        </>
-                    </View>
-                </TouchableOpacity>
+                                    >
+                                        <Input
+                                            placeholder='Corpo da notificação'
+                                            value={bodyNotification}
+                                            onChangeText={setBodyNotification}
+                                            style={{left: -12}}
+                                        />
+
+                                        <TouchableOpacity
+                                            activeOpacity={0.8}
+                                            style={[styles.DateTimePickerButton, { marginLeft: 4}]}
+                                            onPress={showDatepicker}
+                                        >
+                                            <Feather name="calendar" size={24} color="black"/>
+                                        </TouchableOpacity>
+
+                                        <TouchableOpacity
+                                            activeOpacity={0.8}
+                                            style={[styles.DateTimePickerButton, { marginLeft: 4}]}
+                                            onPress={showTimepicker}
+                                        >
+                                            <Feather name="clock" size={24} color="black"/>
+                                        </TouchableOpacity>
+                                    </View>
+
+                                </View>
+                                    {
+                                        showDatePicker && (
+
+                                        <DateTimePicker
+                                            value={selectedDateTime}
+                                            mode={mode}
+                                            display="default"
+                                            onChange={handleChangeTime}
+                                            is24Hour={true}
+                                        />
+                                    
+                                        )
+                                    }
+
+                                    {
+                                        Platform.OS === 'android' && (
+                                            <View
+                                                style={{
+                                                    flexDirection: 'row',
+                                                    alignItems: 'center'
+                                                }}
+                                            >
+                                                <TouchableOpacity 
+                                                    style={styles.DateTimePickerButton}
+                                                    onPress={() => handleAddNotificationInList(selectedDateTime)}
+                                                    activeOpacity={0.8}
+                                                >
+                                                    <Ionicons name="notifications-outline" size={24} color="black"/>
+                                                    <LegendDark>
+                                                        Adicionar
+                                                    </LegendDark>
+                                                </TouchableOpacity>
+
+                                                <Text style={styles.dateTimePickerText} >
+                                                {`${ format(selectedDateTime, 'dd.MM HH:mm ', { locale: ptBR }) }`}
+                                                </Text>
+
+                                            </View>
+                                        )
+
+
+
+                                    }
+
+                                    {
+                                        notificationAdded &&
+
+                                        <LegendDark style={{marginLeft: 14}}>
+                                            Notificação Adicionada!!
+                                        </LegendDark>
+                                    }
+                             
+                                {/* CONTAINER DE BOTÕES */}
+                                <View
+                                    style={{
+                                        flexDirection: 'row',
+                                        width: '85%',
+                                        alignItems: 'center',
+                                        justifyContent: 'space-between',
+                                        alignSelf: 'center',
+                                        top: 80,
+                                        marginBottom: 80
+
+                                        
+                                    }}
+                                >
+                                    <ButtonRect
+                                        style={{
+                                            backgroundColor: theme.colors.attention
+                                        }}
+                                        onPress={() => deleteList(listEdit)}
+                                    >
+                                        <LegendLight>
+                                            Excluir
+                                        </LegendLight>
+                                    </ButtonRect>
+
+                                    <ButtonRect
+                                        style={{
+                                            backgroundColor: theme.colors.success
+                                        }}
+                                        onPress={() => saveList(listEdit)}
+                                    >
+                                        <LegendLight>
+                                            Salvar
+                                        </LegendLight>
+                                    </ButtonRect>
+                                </View>
+                            
+                            </View>
+                    </ScrollView>
+                        </View>
+                </>
             </Modal>
+        
         </Background>
         </TouchableWithoutFeedback>
     )

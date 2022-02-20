@@ -2,6 +2,30 @@ import styled from 'styled-components/native'
 import { Ionicons, AntDesign, Feather } from '@expo/vector-icons'
 import theme from '../../global/styles/theme'
 import { getStatusBarHeight } from 'react-native-iphone-x-helper'
+import { StyleSheet } from 'react-native'
+
+export const styles = StyleSheet.create({
+    dateTimePickerText: {
+        color: theme.colors.primary,
+        fontFamily: theme.fonts.medium,
+        fontSize: 24,
+    
+      },
+      DateTimePickerButton: {
+        alignSelf: 'flex-start',
+        marginLeft: 22,
+        marginTop: 8,
+        alignItems: 'center',
+        padding: 10,
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        backgroundColor: theme.colors.background,
+        borderRadius: 10,
+        left: -12
+    
+      }
+    
+})
 
 export const Background = styled.View`
     flex: 1;
