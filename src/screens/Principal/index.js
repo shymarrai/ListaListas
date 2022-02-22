@@ -154,7 +154,6 @@ export default function Principal({ toggleTheme }){
             setQuantityItemNoCheck(0)
             setNotificationAdded(false)
             setBodyNotification('')
-            setSelectedDateTime(new Date())
         }else{
             setOpenOptions(true)
             setListEdit(list)
@@ -205,7 +204,6 @@ export default function Principal({ toggleTheme }){
             setQuantityItemNoCheck(0)
             setNotificationAdded(false)
             setBodyNotification('')
-            setSelectedDateTime(new Date())
         }catch(err){
             console.log(err)
         }
@@ -242,7 +240,6 @@ export default function Principal({ toggleTheme }){
             setQuantityItemNoCheck(0)
             setNotificationAdded(false)
             setBodyNotification('')
-            setSelectedDateTime(new Date())
         }catch(err){
             console.log(err)
         }
@@ -299,7 +296,6 @@ export default function Principal({ toggleTheme }){
             name: 'default',
             importance: Notifications.AndroidImportance.HIGH,
             vibrationPattern: [0, 250, 250, 250],
-            lightColor: '#FFBD2E',
           });
         }
       
@@ -311,7 +307,7 @@ export default function Principal({ toggleTheme }){
         
         const now = new Date()
 
-        const formateDate = String(format(dateNotification, 'MM/dd/yyyy HH:mm:ss (z)', { locale: ptBR}))
+        const formateDate = String(format(dateNotification, 'MM/dd/yyyy HH:mm (z)', { locale: ptBR}))
         const date = new Date(formateDate)
         
         const seconds = Math.abs( 
@@ -327,7 +323,6 @@ export default function Principal({ toggleTheme }){
                     sound:  'default',
                     priority: Notifications.AndroidNotificationPriority.HIGH,
                     data: { data: 'goes here' },
-                    color: '#FFBD2E',
       
                   },
                   trigger:{
@@ -337,7 +332,6 @@ export default function Principal({ toggleTheme }){
 
                 setNotificationAdded(true)
                 setBodyNotification('')
-                setSelectedDateTime(new Date())
           }catch(err){
               console.log(err)
           }

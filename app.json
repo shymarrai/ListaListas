@@ -2,18 +2,16 @@
   "expo": {
     "name": "Lista Listas",
     "icon": "./assets/icon.png",
-    "plugins": [
-      [
-        "expo-notifications",
-        {
-          "icon": "./assets/icon.png",
-          "color": "#FFBD2E"
-        }
-      ]
-    ],
     "splash": {
       "image": "./assets/icon.png",
       "backgroundColor": "#011627"
+    },
+    "notification": {
+      "icon": "./assets/statusbarIcon.png",
+      "color": "#FFBD2E",
+      "androidMode": "default",
+      "androidCollapsedTitle": "Updates from Colab.notes",
+      "iosDisplayInForeground": true
     },
     "slug": "lista-listas",
     "version": "1.0.0",
@@ -23,9 +21,16 @@
     "android": {
       "package": "com.shymarrai.ListaListas",
       "versionCode": 1,
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#FFBD2E"
+      },
       "config": {
         "googleMobileAdsAppId": "ca-app-pub-1630449266026590~9453430608"
       }
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
     }
   },
   "name": "ListaListas",
